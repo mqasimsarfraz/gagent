@@ -1,0 +1,39 @@
+name: Gadget Agent CI/CD Workflow
+env:
+  CAGENT_VERSION: "v1.1.1"
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: read-all
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      # allow publishing container image
+      # in case of public fork repo/packages permissions will always be read
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup cagent
+        run: |
+          curl -Lo cagent https://github.com/docker/cagent/releases/download/${CAGENT_VERSION}/cagent-linux-amd64
+          chmod +x cagent
+      - name: Login in Dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Publish to Container Registry
+        run: |
+          for file in $(find providers -name "*.yaml") ; do
+            REPOSITORY=$( echo ${file%.*} | sed 's|providers/azure/||;s|/|_|g' )
+            echo "Publishing ${file} to ${REPOSITORY}:latest"
+            ./cagent push ./${file} ${{ vars.DOCKERHUB_USERNAME }}/agent-${REPOSITORY}:latest
+          done
+          
