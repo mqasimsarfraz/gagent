@@ -8,7 +8,7 @@ models:
     # TODO: Replace with your Azure OpenAI base URL
     base_url: https://your-resource-name.cognitiveservices.azure.com
     provider_opts:
-      api_version: 2024-12-01-preview
+      api_version: 2025-01-01-preview
 
 agents:
   root:
