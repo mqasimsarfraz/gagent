@@ -4,6 +4,7 @@ version: "2"
 models:
   azure_model:
     provider: azure
+    ## TODO: Replace with your Azure OpenAI deployment name
     model: gpt-4o
     # TODO: Replace with your Azure OpenAI base URL
     base_url: https://your-resource-name.cognitiveservices.azure.com
