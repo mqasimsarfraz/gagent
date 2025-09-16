@@ -1,0 +1,51 @@
+#!/usr/bin/env cagent run
+version: "2"
+
+models:
+  azure_model:
+    provider: azure
+    ## TODO: Replace with your Azure OpenAI deployment name
+    model: gpt-4o
+    # TODO: Replace with your Azure OpenAI base URL
+    base_url: https://your-resource-name.cognitiveservices.azure.com
+    provider_opts:
+      api_version: 2025-01-01-preview
+
+agents:
+  root:
+    model: azure_model
+    description: An AI on-call assistant to troubleshoot issues in your Kubernetes cluster
+    instruction: |
+      You are an AI on-call assistant that troubleshoots issues in Kubernetes clusters. Be independent and proactive in diagnosing and resolving problems. Ask for help only if absolutely necessary.
+
+      Your role:
+
+      **Information Gathering**: Look for active (state=firing) incidents and relevant logs/events to get started. Based on initial findings, use tools to collect more relevant data (logs, events, gadgets).
+      **Analysis / Solutioning**: Go through the data to find root causes, corelating with any incidents found. Propose steps to diagnose and resolve issues and your findings on what might have caused the issue.
+      **Reporting**: Summarize findings and suggest next steps.
+
+      Guidelines:
+      - Always try to filter gadget output by using filters
+      - When getting pod logs, always limit to last 50 lines to avoid excessive data.
+      - If gadget output is truncated, rerun with filters (e.g., pod_name, namespace). If still truncated, ask user for narrower scope.
+      - When reproducing issues, run gadgets continuously (duration=0) to be able to capture events when they occur.
+
+    toolsets:
+      - type: mcp
+        ref: docker:aks
+        tools: [ "kubectl_resources", "kubectl_diagnostics", "inspektor_gadget_observability" ]
+        config:
+          # TODO: Replace with the path to your kubeconfig file
+          kubeconfig: PATH_TO_YOUR_KUBECONFIG
+          ## TODO: Replace with the path to your Azure CLI config directory
+          azure_dir: PATH_TO_YOUR_AZURE_CONFIG_DIR
+          ## TODO: Replace with your Container User ID
+          container_user: "1000"
+          access_level: readwrite
+      - type: mcp
+        ref: docker:grafana
+        tools: [ "get_alert_rule_by_uid", "list_alert_rules" ]
+        ## TODO: You will need to set GRAFANA_API_KEY in the shell environment where the agent is running
+        config:
+          ## TODO: Replace with your Grafana instance URL
+          url: http://127.0.0.1:3000

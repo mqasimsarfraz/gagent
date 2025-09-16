@@ -14,11 +14,11 @@ cd gagent-agents
 Fetch the gadget definition:
 
 ```bash
-cagent pull smqasims/agent-k8s_troubleshooting
+cagent pull smqasims/agent-on_call
 ```
 
 Configure the agent definition as per your local environment and run it using:
 
 ```bash
-cagent run ./smqasims_agent-k8s_troubleshooting.yaml
+cagent run ./smqasims_agent-on_call.yaml
 ```

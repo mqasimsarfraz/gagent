@@ -31,7 +31,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Publish to Container Registry
         run: |
-          for file in $(find providers -name "*.yaml") ; do
+          for file in $(find agents -name "*.yaml") ; do
             REPOSITORY=$( echo ${file%.*} | sed 's|agents/||;s|/|_|g' )
             echo "Publishing ${file} to ${REPOSITORY}:latest"
             ./cagent push ./${file} ${{ vars.DOCKERHUB_USERNAME }}/agent-${REPOSITORY}:latest
