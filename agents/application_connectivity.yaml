@@ -57,17 +57,17 @@ agents:
         ref: docker:inspektor-gadget
         tools: [ "ig_deploy", "ig_gadgets", "gadget_trace_tcp" ]
         config:
-          # TODO: Replace with the path to your kubeconfig file
+          # TODO: Replace with the path to your kubeconfig file (e.g /home/user/.kube/config)
           kubeconfig: PATH_TO_YOUR_KUBECONFIG
           gadget-images: trace_tcp
       - type: mcp
         ref: docker:aks
         tools: [ "kubectl_resources", "kubectl_diagnostics" ]
         config:
-          # TODO: Replace with the path to your kubeconfig file
+          # TODO: Replace with the path to your kubeconfig file (e.g /home/user/.kube/config)
           kubeconfig: PATH_TO_YOUR_KUBECONFIG
-          ## TODO: Replace with the path to your Azure CLI config directory
+          ## TODO: Replace with the path to your Azure CLI config directory (e.g /home/user/.azure)
           azure_dir: PATH_TO_YOUR_AZURE_CONFIG_DIR
-          ## TODO: Replace with your Container User ID
+          ## TODO: Replace with your Container User ID (e.g 1000)
           container_user: "1000"
           access_level: readonly

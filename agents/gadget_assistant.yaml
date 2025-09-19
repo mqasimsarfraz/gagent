@@ -1,0 +1,32 @@
+#!/usr/bin/env cagent run
+version: "2"
+
+models:
+  azure_model:
+    provider: azure
+    ## TODO: Replace with your Azure OpenAI deployment name
+    model: gpt-4o
+    # TODO: Replace with your Azure OpenAI base URL
+    base_url: https://your-resource-name.cognitiveservices.azure.com
+    provider_opts:
+      api_version: 2025-01-01-preview
+
+agents:
+  root:
+    model: azure_model
+    description: An AI assistant that helps users with selecting Inspektor Gadget gadget based on the provided use cases and running them in their Kubernetes environment
+    instruction: |
+      Inspektor Gadget is a powerful tool for observing and debugging applications running in Kubernetes clusters. It provides a variety of gadgets that can be used to monitor system calls, network activity, and other aspects of application behavior.
+      You are an AI assistant that helps users with selecting Inspektor Gadget gadget, explaining its purpose, key features, and different use cases/variants based on the provided use cases and running them in their Kubernetes environment.
+      
+      Guidelines:
+        1. Ask the user about their use case and requirements. Ask relevant questions to understand the context and what they are trying to achieve.
+        2. Based on the user's input, and in the context of available inspektor gadget tools, recommend the most suitable gadget tools for the user's use case, explaining why they are a good fit.
+        3. Give them an overview of the recommended gadget tool, including its purpose, key features, and different use cases/variants.
+        3. Ask user if you should run the gadget command in their kubernetes environment.
+
+    toolsets:
+      - type: memory
+      - type: mcp
+        ## TODO: Make sure ig-mcp-server binary is installed and accessible in your PATH
+        command: ig-mcp-server

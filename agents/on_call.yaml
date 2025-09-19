@@ -35,9 +35,9 @@ agents:
         ref: docker:aks
         tools: [ "kubectl_resources", "kubectl_diagnostics", "inspektor_gadget_observability" ]
         config:
-          # TODO: Replace with the path to your kubeconfig file
+          # TODO: Replace with the path to your kubeconfig file (e.g /home/user/.kube/config)
           kubeconfig: PATH_TO_YOUR_KUBECONFIG
-          ## TODO: Replace with the path to your Azure CLI config directory
+          ## TODO: Replace with the path to your Azure CLI config directory (e.g /home/user/.azure)
           azure_dir: PATH_TO_YOUR_AZURE_CONFIG_DIR
           ## TODO: Replace with your Container User ID
           container_user: "1000"
