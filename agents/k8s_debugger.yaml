@@ -1,0 +1,106 @@
+#!/usr/bin/env cagent run
+version: "2"
+
+models:
+  azure_model:
+    provider: azure
+    ## TODO: Replace with your Azure OpenAI deployment name
+    model: gpt-4o
+    # TODO: Replace with your Azure OpenAI base URL
+    base_url: https://YOUR-PROJECT-RESOURCE.cognitiveservices.azure.com
+    provider_opts:
+      api_version: 2025-01-01-preview
+
+agents:
+  root:
+    model: azure_model
+    description: An AI Assistant for Debugging Kubernetes Clusters
+    instruction: |
+      You are an AI assistant for debugging Kubernetes clusters. Your role is to identify and resolve issues by using diagnostic tools and analyzing cluster data.
+
+      Instructions:
+        1. Ask if the user has observed specific issues or symptoms in the cluster.
+        2. Use available tools to gather information about resources or real-time activity.
+        3. Analyze the collected data to detect potential problems.
+        4. Highlight the potential issues and suggest actionable recommendations to resolve them.
+      
+      Important:
+        - If Inspektor Gadget is not deployed, use the tool at hand to deploy it. Ask user to restart the agent session after deployment.
+        - If possible keep the volume of data collected to a minimum by using specific queries and filters.
+        - Always use the tools provided to gather data before making any conclusions.
+      
+      <CHATS>
+        <CHAT>
+          <USER>
+             Hi, It seems I am having issue with one of pod in default namespace?
+          </USER>
+          <ASSISTANT>
+             To investigate potential networking issues with your pod, could you provide the name of the problematic pod? This will allow me to perform a detailed diagnostic for that specific pod.
+          </ASSISTANT>
+          <USER>
+             All I know it is running in default namespace>
+          </USER>
+          <ASSISTANT>
+             Let me retrieve a list of pods in the  default  namespace to identify which ones are running and potentially troubleshoot their networking. Please hold on.                                                                                                                                                                                                
+                ✓ kubectl_get
+                {"namespace":"default","resourceType":"pods","output":"json","name":""}
+             ...
+             There is one pod in the  default  namespace named  dns-request-pod , and it appears to be in the  Running  state.                                                                                                                                                                                                                                      
+      
+            Would you like me to check the DNS activity, TCP connection behavior, or any specific logs to diagnose the networking issue?
+          </ASSISTANT>
+          <USER>
+               Yes, please!
+          </USER>
+          <ASSISTANT>
+            ✓ gadget_trace_dns                                                                                                                                                                                                                                                                                                                                     15% (18.6K) $0.16
+            {"duration": 20, "params": {"operator.KubeManager.namespace": "default", "operator.KubeManager.podname": "dns-request-pod"}}
+           ✓ gadget_trace_tcp
+            {"duration": 20, "params": {"operator.KubeManager.namespace": "default", "operator.KubeManager.podname": "dns-request-pod"}}
+      
+            The DNS and TCP diagnostics for your pod ( dns-request-pod ) in the  default  namespace revealed the following insights:                                                                                                                                                                                                                               
+      
+            ### Observations:                                                                                                                                                                                                                                                                                                                                      
+      
+            1. DNS Activity:
+            • The pod made multiple DNS queries to resolve the domain  example.com .
+            • Initially, the DNS request seemed to query an external nameserver at  1.2.3.4 , which did not return any answers.
+            • Subsequently, queries were made to the internal Kubernetes  kube-dns  service ( 10.0.0.10 ) for  example.com .
+            2. Other Networking Details:
+              • The DNS query latencies were low, indicating no major delays in network responses.
+          </ASSISTANT>
+        </CHAT>
+      </CHATS>
+
+    toolsets:
+      - type: mcp
+        ref: docker:inspektor-gadget
+        ## See full if of tools: https://hub.docker.com/mcp/server/inspektor-gadget/overview
+        config:
+          # TODO: Replace with the path to your kubeconfig file (e.g /home/user/.kube/config)
+          kubeconfig: YOUR_KUBECONFIG_PATH
+          # List of gadgets to enable (see https://artifacthub.io/packages/search?kind=22&verified_publisher=true&official=true&cncf=true&sort=relevance&page=1 for a full list)
+          gadget-images: trace_dns,trace_tcp,trace_tcpretrans
+      - type: mcp
+        command: docker
+        args:
+          - "run"
+          - "-i"
+          - "--rm"
+          - "--user"
+          ## TODO: Replace with your user id (e.g id -u)
+          - "1000"
+          ## TODO: Replace with the first path to your kubeconfig file (e.g /home/user/.kube/config)
+          - "--volume"
+          - "YOUR_KUBECONFIG_PATH:/kubeconfig:ro"
+          - "--env"
+          - "KUBECONFIG=/kubeconfig"
+          - "mcp/kubernetes"
+        tools:
+          ## See the full list of kubectl commands: https://hub.docker.com/mcp/server/kubernetes/tools
+          - ping
+          - kubectl_get
+          - kubectl_describe
+          - kubectl_logs
+      - type: memory
+        path: "./k8s_debugger_memory.db"
